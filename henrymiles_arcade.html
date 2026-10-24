@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>HenryMiles Arcade</title>
+<style>
+  :root { color-scheme: dark; --bg:#101322; --panel:#1b2036; --text:#f5f7ff; --muted:#aab3d2; --accent:#7c5cff; --accent2:#22d3ee; }
+  * { box-sizing:border-box; }
+  body { margin:0; font-family:system-ui,-apple-system,Segoe UI,sans-serif; color:var(--text); background:radial-gradient(ellipse at top,#242b50 0%,var(--bg) 55%); min-height:100vh; }
+  header { padding:34px 18px 26px; text-align:center; }
+  .logo { display:inline-block; font-weight:900; letter-spacing:-1px; font-size:clamp(2.4rem,8vw,4.7rem); background:linear-gradient(90deg,#fff,var(--accent2),#bdaeff); -webkit-background-clip:text; background-clip:text; color:transparent; }
+  header p { color:var(--muted); margin:8px 0 0; }
+  main { width:min(1050px,94vw); margin:0 auto 50px; }
+  .section-title { font-size:1.25rem; margin:16px 0; }
+  .games { display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:16px; }
+  .card { background:linear-gradient(145deg,#222945,#171b2d); border:1px solid #343c60; border-radius:18px; padding:20px; box-shadow:0 10px 28px #0003; }
+  .icon { font-size:2.5rem; }
+  .card h3 { margin:8px 0 5px; }
+  .card p { margin:0 0 16px; color:var(--muted); min-height:42px; }
+  button { border:0; border-radius:10px; background:linear-gradient(90deg,var(--accent),#5b8cff); color:white; padding:11px 15px; font-weight:750; cursor:pointer; font-size:1rem; }
+  button:hover { filter:brightness(1.12); }
+  button:focus-visible { outline:3px solid var(--accent2); outline-offset:3px; }
+  .gamebox { display:none; margin-top:22px; }
+  .gamebox.active { display:block; }
+  .game-head { display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; }
+  .game-head h2 { margin:0; }
+  .small { color:var(--muted); font-size:.92rem; }
+  .play-area { margin-top:15px; background:#0b0e19; border:1px solid #343c60; border-radius:16px; padding:18px; text-align:center; min-height:210px; }
+  .big-number { font-size:clamp(3rem,12vw,5rem); font-weight:900; margin:10px 0; }
+  .controls { display:flex; flex-wrap:wrap; gap:10px; justify-content:center; margin-top:15px; }
+  .secondary { background:#333b59; }
+  .result { min-height:28px; color:#a5f3fc; font-weight:700; margin:10px 0 0; }
+  .field { width:min(100%,620px); margin:15px auto; background:linear-gradient(#7edb91,#27945b); border-radius:50%; aspect-ratio:2/1; position:relative; overflow:hidden; border:5px solid #d5f7db; }
+  .field:before { content:""; position:absolute; inset:14%; border:3px solid #f0fff0; border-radius:50%; }
+  .diamond { position:absolute; width:28%; height:28%; background:#e9c78d; border:3px solid white; transform:rotate(45deg); left:36%; top:35%; }
+  .ball { font-size:2.3rem; }
+  .footer { text-align:center; color:var(--muted); padding:0 15px 28px; font-size:.9rem; }
+</style>
+</head>
+<body>
+<header>
+  <div class="logo">HenryMiles</div>
+  <p>🎮 Your little corner of fun. Pick a game and play!</p>
+</header>
+<main>
+  <h2 class="section-title">🕹️ Choose a game</h2>
+  <section class="games" aria-label="Games">
+    <article class="card"><div class="icon">🔢</div><h3>Number Guess</h3><p>Can you guess the secret number from 1 to 20?</p><button onclick="openGame('guess')">Play game</button></article>
+    <article class="card"><div class="icon">✂️</div><h3>Rock Paper Scissors</h3><p>Challenge the computer in a classic showdown.</p><button onclick="openGame('rps')">Play game</button></article>
+    <article class="card"><div class="icon">⚾</div><h3>Home Run Derby</h3><p>Time your swing and see how many home runs you can hit.</p><button onclick="openGame('baseball')">Play game</button></article>
+    <article class="card"><div class="icon">🧠</div><h3>Quick Quiz</h3><p>Answer fun general-knowledge questions.</p><button onclick="openGame('quiz')">Play game</button></article>
+  </section>
+
+  <section id="guess" class="card gamebox">
+    <div class="game-head"><h2>🔢 Number Guess</h2><button class="secondary" onclick="closeGames()">Back to games</button></div>
+    <div class="play-area"><p>I'm thinking of a number from 1 to 20.</p><input id="guessInput" type="number" min="1" max="20" aria-label="Your guess" style="padding:10px;border-radius:8px;width:120px;font-size:1rem"><div class="controls"><button onclick="makeGuess()">Guess!</button><button class="secondary" onclick="resetGuess()">New number</button></div><p id="guessResult" class="result" aria-live="polite"></p><p id="guessCount" class="small">Guesses: 0</p></div>
+  </section>
+
+  <section id="rps" class="card gamebox">
+    <div class="game-head"><h2>✂️ Rock Paper Scissors</h2><button class="secondary" onclick="closeGames()">Back to games</button></div>
+    <div class="play-area"><p>Pick your move!</p><div class="controls"><button onclick="playRPS('rock')">🪨 Rock</button><button onclick="playRPS('paper')">📄 Paper</button><button onclick="playRPS('scissors')">✂️ Scissors</button></div><div id="rpsResult" class="result" aria-live="polite"></div><p id="rpsScore" class="small">You: 0 · Computer: 0 · Ties: 0</p><button class="secondary" onclick="resetRPS()">Reset score</button></div>
+  </section>
+
+  <section id="baseball" class="card gamebox">
+    <div class="game-head"><h2>⚾ Home Run Derby</h2><button class="secondary" onclick="closeGames()">Back to games</button></div>
+    <div class="play-area"><p>Press SWING when the pitch comes in. You get 10 pitches!</p><div class="field"><div class="diamond"></div></div><div class="ball" id="pitchBall">⚾</div><div class="controls"><button id="swingBtn" onclick="swing()">SWING!</button><button class="secondary" onclick="resetBaseball()">Start over</button></div><p id="baseResult" class="result" aria-live="polite">Ready, batter?</p><p id="baseScore" class="small">Home runs: 0 · Pitches left: 10</p></div>
+  </section>
+
+  <section id="quiz" class="card gamebox">
+    <div class="game-head"><h2>🧠 Quick Quiz</h2><button class="secondary" onclick="closeGames()">Back to games</button></div>
+    <div class="play-area"><p id="quizQuestion" style="font-size:1.2rem;font-weight:750"></p><div id="quizChoices" class="controls"></div><p id="quizResult" class="result" aria-live="polite"></p><p id="quizProgress" class="small"></p><button class="secondary" onclick="startQuiz()">Restart quiz</button></div>
+  </section>
+</main>
+<div class="footer">HenryMiles Arcade · Made for fun ✨</div>
+<script>
+let secret = Math.floor(Math.random()*20)+1, guesses = 0;
+function openGame(id){ closeGames(); document.getElementById(id).classList.add('active'); document.getElementById(id).scrollIntoView({behavior:'smooth',block:'start'}); if(id==='quiz' && quizIndex===-1) startQuiz(); }
+function closeGames(){ document.querySelectorAll('.gamebox').forEach(x=>x.classList.remove('active')); window.scrollTo({top:0,behavior:'smooth'}); }
+function resetGuess(){secret=Math.floor(Math.random()*20)+1;guesses=0;document.getElementById('guessResult').textContent='New number picked. Good luck!';document.getElementById('guessCount').textContent='Guesses: 0';document.getElementById('guessInput').value='';}
+function makeGuess(){const el=document.getElementById('guessInput'), n=Number(el.value), r=document.getElementById('guessResult');if(!el.value||n<1||n>20||!Number.isInteger(n)){r.textContent='Enter a whole number from 1 to 20.';return;}guesses++;r.textContent=n===secret?'🎉 You got it! Great guessing!':n<secret?'Too low! Try a bigger number.':'Too high! Try a smaller number.';document.getElementById('guessCount').textContent='Guesses: '+guesses;if(n===secret) r.textContent+=' Tap “New number” to play again.';}
+let rs={you:0,computer:0,ties:0};
+function playRPS(move){const opts=['rock','paper','scissors'], comp=opts[Math.floor(Math.random()*3)];let msg='';if(move===comp){rs.ties++;msg='It’s a tie!';}else if((move==='rock'&&comp==='scissors')||(move==='paper'&&comp==='rock')||(move==='scissors'&&comp==='paper')){rs.you++;msg='You win this round! 🎉';}else{rs.computer++;msg='Computer wins this round!';}const icons={rock:'🪨',paper:'📄',scissors:'✂️'};document.getElementById('rpsResult').textContent='You: '+icons[move]+' · Computer: '+icons[comp]+' — '+msg;document.getElementById('rpsScore').textContent=`You: ${rs.you} · Computer: ${rs.computer} · Ties: ${rs.ties}`;}
+function resetRPS(){rs={you:0,computer:0,ties:0};document.getElementById('rpsResult').textContent='Ready for another round?';document.getElementById('rpsScore').textContent='You: 0 · Computer: 0 · Ties: 0';}
+let pitches=10, homers=0;
+function swing(){if(pitches<=0)return; pitches--; const roll=Math.random();let msg=roll>.62?'💥 HOME RUN!':roll>.34?'Solid hit, but caught!':'Strike!';if(roll>.62)homers++;document.getElementById('baseResult').textContent=msg;document.getElementById('baseScore').textContent=`Home runs: ${homers} · Pitches left: ${pitches}`;document.getElementById('pitchBall').textContent=roll>.62?'🚀':roll>.34?'⚾':'❌';if(pitches===0)document.getElementById('baseResult').textContent+=` Derby over! You hit ${homers} home run${homers===1?'':'s'}!`;}
+function resetBaseball(){pitches=10;homers=0;document.getElementById('baseResult').textContent='Ready, batter?';document.getElementById('baseScore').textContent='Home runs: 0 · Pitches left: 10';document.getElementById('pitchBall').textContent='⚾';}
+const questions=[
+ {q:'How many sides does a triangle have?',a:['3','4','5'],correct:0},
+ {q:'Which planet is known as the Red Planet?',a:['Venus','Mars','Jupiter'],correct:1},
+ {q:'How many players from one team are on the field in baseball on defense?',a:['7','9','11'],correct:1},
+ {q:'What is the largest ocean on Earth?',a:['Atlantic','Indian','Pacific'],correct:2},
+ {q:'What do bees make?',a:['Honey','Maple syrup','Lemonade'],correct:0}
+];let quizIndex=-1,quizPoints=0,quizAnswered=false;
+function startQuiz(){quizIndex=0;quizPoints=0;quizAnswered=false;showQuestion();}
+function showQuestion(){let q=questions[quizIndex];document.getElementById('quizQuestion').textContent=q.q;document.getElementById('quizResult').textContent='';document.getElementById('quizProgress').textContent=`Question ${quizIndex+1} of ${questions.length} · Score: ${quizPoints}`;let box=document.getElementById('quizChoices');box.innerHTML='';q.a.forEach((a,i)=>{let b=document.createElement('button');b.textContent=a;b.onclick=()=>answerQuiz(i);box.appendChild(b);});quizAnswered=false;}
+function answerQuiz(i){if(quizAnswered)return;quizAnswered=true;let q=questions[quizIndex];let r=document.getElementById('quizResult');if(i===q.correct){quizPoints++;r.textContent='Correct! 🎉';}else r.textContent='Not quite! The answer is '+q.a[q.correct]+'.';document.getElementById('quizProgress').textContent=`Question ${quizIndex+1} of ${questions.length} · Score: ${quizPoints}`;let box=document.getElementById('quizChoices');box.innerHTML='';let b=document.createElement('button');b.textContent=quizIndex===questions.length-1?'See final score':'Next question';b.onclick=()=>{if(quizIndex<questions.length-1){quizIndex++;showQuestion();}else{document.getElementById('quizQuestion').textContent='Quiz complete!';document.getElementById('quizResult').textContent=`You scored ${quizPoints} out of ${questions.length}. ${quizPoints===questions.length?'Perfect score! 🌟':'Nice playing!'}`;document.getElementById('quizProgress').textContent='Play again whenever you like.';}};box.appendChild(b);}
+</script>
+</body>
+</html>
